@@ -1,0 +1,12 @@
+# secrets + local data - never commit these
+.env
+backend/.env
+backend/app.db
+*.db
+
+__pycache__/
+*.pyc
+venv/
+.venv/
+.vercel/
+node_modules/
