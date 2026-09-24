@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>What Can I Cook</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FAF7F0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2226%22 fill=%22%23F5A623%22/><text x=%2250%22 y=%2266%22 font-family=%22sans-serif%22 font-size=%2244%22 font-weight=%22700%22 fill=%22%231A1712%22 text-anchor=%22middle%22>C</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script>
+  // Apply saved theme before paint to avoid a flash of the wrong theme
+  (function () {
+    var saved = localStorage.getItem("theme");
+    document.documentElement.setAttribute("data-theme", saved === "dark" ? "dark" : "light");
+  })();
+</script>
+</head>
+<body>
+
+<!-- LANDING / AUTH -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-left">
+    <button class="theme-toggle theme-toggle-landing" id="themeToggleLanding" title="Toggle dark mode">Dark</button>
+
+    <div class="auth-inner">
+      <div class="auth-brand-row">
+        <span class="brand-mark">WCC</span>
+        <span class="auth-brand-name">What Can I Cook</span>
+      </div>
+
+      <h2 id="authTitle">Welcome back</h2>
+      <p class="muted" id="authSubtitle">Log in to continue your cooking journey</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-mode="login">Log in</button>
+        <button class="auth-tab" data-mode="register">Create account</button>
+      </div>
+
+      <form id="authForm">
+        <label class="field">
+          <span class="field-label">Username</span>
+          <input type="text" id="authUsername" placeholder="e.g. chef_anna" autocomplete="username" required minlength="3">
+        </label>
+        <label class="field">
+          <span class="field-label">Password</span>
+          <span class="field-pass">
+            <input type="password" id="authPassword" placeholder="Your password" autocomplete="current-password" required minlength="4">
+            <button type="button" class="field-eye" id="authPwdToggle" title="Show/hide password">Show</button>
+          </span>
+        </label>
+
+        <div class="auth-row-between">
+          <label class="check"><input type="checkbox" id="authRemember"> Remember me</label>
+          <a href="#" class="link-small" id="authForgot">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="authSubmitBtn">Log in</button>
+      </form>
+
+      <p class="hint error" id="authError"></p>
+
+      <div class="auth-switch-line">
+        <span id="authSwitchText">Don't have an account?</span>
+        <button type="button" class="link-small" id="authSwitchBtn">Sign up</button>
+      </div>
+
+      <div class="auth-socials">
+        <button class="social" title="Google">G</button>
+        <button class="social" title="Facebook">f</button>
+        <button class="social" title="LinkedIn">in</button>
+      </div>
+
+      <p class="auth-tagline">Snap a photo of your fridge — we'll tell you what to cook tonight. 100% free, runs on your own server.</p>
+    </div>
+  </div>
+
+  <div class="auth-right" id="authVisual">
+    <div class="auth-collage" id="authCollage">
+      <div class="collage-tile t1"></div>
+      <div class="collage-tile t2"></div>
+      <div class="collage-tile t3"></div>
+      <div class="collage-tile t4"></div>
+    </div>
+    <div class="auth-visual-copy">
+      <h2>Cook something <span class="hl">delicious</span> tonight</h2>
+      <p>Hundreds of recipes, one photo of your fridge, zero food waste.</p>
+    </div>
+  </div>
+</div>
+
+<div class="app-shell hidden" id="appShell">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">WCC</span>
+      <div class="brand-text">
+        <h1>What Can I Cook</h1>
+        <p>Point a camera at what you've got. Walk away with dinner.</p>
+      </div>
+      <div class="account-badge">
+        <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">Dark</button>
+        <button class="mic-btn" id="voiceCommandBtn" title="Voice command">Voice</button>
+        <button class="btn btn-ghost btn-small" id="howToCookBtn">How to Cook?</button>
+        <span id="accountUsername"></span>
+        <button class="btn btn-ghost btn-small" id="logoutBtn">Log out</button>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-tab="home">Home</button>
+      <button class="tab" data-tab="scan">Scan</button>
+      <button class="tab" data-tab="pantry">Pantry <span class="tab-count" id="pantryCount"></span></button>
+      <button class="tab" data-tab="recipes">Recipes</button>
+      <button class="tab" data-tab="explore">Explore</button>
+      <button class="tab" data-tab="favorites">Saved</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- HOME TAB -->
+    <section class="panel active" id="panel-home">
+
+      <div class="hero">
+        <div class="hero-text">
+          <span class="hero-badge">Welcome back</span>
+          <h2>What's in your kitchen <span class="hl">tonight?</span></h2>
+          <p class="muted">Scan your fridge, browse a cuisine, or jump straight to a saved favorite.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" id="heroScanBtn">Scan ingredients</button>
+            <button class="btn btn-ghost" id="heroHowToCookBtn">How to Cook?</button>
+          </div>
+        </div>
+        <div class="hero-visual" id="heroVisual">
+          <div class="hero-photo skeleton" id="heroPhoto" role="button" tabindex="0" aria-label="Open featured recipe"></div>
+          <div class="hero-float hero-float-a skeleton" id="heroFloatA"></div>
+          <div class="hero-float hero-float-b skeleton" id="heroFloatB"></div>
+          <div class="hero-tag hidden" id="heroTag"></div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h3>What to <span class="hl">Cook?</span></h3>
+        <span class="muted" id="homeGridNote">Fresh picks for you</span>
+      </div>
+      <div class="pill-row" id="homeCategoryPills"></div>
+      <div class="rgrid" id="homeRecipeGrid"></div>
+
+      <div class="section-head">
+        <h3>Browse by category</h3>
+      </div>
+      <div class="explore-grid home-category-grid" id="homeCategoryGrid"><p class="muted">Loading categories…</p></div>
+
+      <div class="section-head">
+        <h3>Popular right now</h3>
+        <span class="muted">Swipe to see more</span>
+      </div>
+      <div class="strip" id="homeStrip"></div>
+
+      <div class="cta-band" id="ctaBand">
+        <div class="cta-text">
+          <h3>Not sure what to make?</h3>
+          <p>Take one photo of your fridge and let us match it to recipes you can cook right now.</p>
+          <button class="btn btn-accent" id="ctaScanBtn">Try the scanner</button>
+        </div>
+        <div class="cta-photo skeleton" id="ctaPhoto"></div>
+      </div>
+    </section>
+
+    <!-- SCAN TAB -->
+    <section class="panel" id="panel-scan">
+      <div class="scan-grid">
+
+        <div class="card upload-card">
+          <h2>1. Show me what you've got</h2>
+          <p class="muted">Upload a photo of your fridge, pantry, or counter and the AI vision helper will guess what's in it.</p>
+
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="photoInputCamera" accept="image/*" capture="environment" hidden>
+            <input type="file" id="photoInputGallery" accept="image/*" hidden>
+            <div class="dropzone-inner" id="dropzoneInner">
+              <span class="dropzone-icon">Photo</span>
+              <span class="dropzone-text">Take a photo or upload one from your gallery</span>
+              <div class="dropzone-btn-row">
+                <button type="button" class="btn btn-ghost" id="takePhotoBtn">Take Photo</button>
+                <button type="button" class="btn btn-ghost" id="uploadPhotoBtn">Upload from Gallery</button>
+              </div>
+            </div>
+            <img id="photoPreview" class="photo-preview hidden" alt="Preview">
+          </div>
+
+          <button class="btn btn-primary btn-block" id="detectBtn" disabled>Detect ingredients</button>
+          <p class="hint" id="visionHint"></p>
+
+          <div class="saved-recipe-jump">
+            <label for="savedRecipesDropdown">Or jump to a saved recipe</label>
+            <select id="savedRecipesDropdown">
+              <option value="">Your saved recipes…</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card entry-card">
+          <h2>2. Confirm what's in there</h2>
+          <p class="muted">Add anything the photo missed, then save it to your pantry or go straight to recipes.</p>
+
+          <div class="ingredient-search">
+            <input type="text" id="ingredientInput" placeholder="Type an ingredient, press Enter, or use the mic…" autocomplete="off">
+            <button type="button" class="mic-btn mic-btn-inline" id="ingredientMicBtn" title="Add ingredient by voice">Voice</button>
+            <div class="suggestions hidden" id="suggestions"></div>
+          </div>
+
+          <div class="chip-row" id="ingredientChips"></div>
+
+          <div class="entry-actions">
+            <button class="btn btn-ghost" id="clearIngredientsBtn">Clear all</button>
+            <button class="btn btn-accent" id="saveToPantryBtn">Save to pantry</button>
+            <button class="btn btn-primary" id="findRecipesBtn">Find recipes</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PANTRY TAB -->
+    <section class="panel" id="panel-pantry">
+      <div class="panel-header">
+        <h2>Your pantry</h2>
+        <p class="muted">Everything saved here gets used automatically when matching recipes. Items disappear when you cook a recipe that uses them.</p>
+      </div>
+      <div class="pantry-add">
+        <input type="text" id="pantryQuickAdd" placeholder="Add an item…" autocomplete="off">
+        <button class="btn btn-accent" id="pantryQuickAddBtn">Add</button>
+      </div>
+      <div class="pantry-list" id="pantryList"></div>
+      <button class="btn btn-ghost btn-danger" id="clearPantryBtn">Clear entire pantry</button>
+    </section>
+
+    <!-- RECIPES TAB -->
+    <section class="panel" id="panel-recipes">
+      <div class="panel-header">
+        <h2>Recipe matches</h2>
+        <p class="muted" id="matchSourceNote">Based on your pantry.</p>
+      </div>
+      <div class="filter-row" id="tagFilters"></div>
+      <div class="rgrid" id="recipeGrid"></div>
+
+      <div class="external-section" id="externalSection">
+        <h3>More ideas from TheMealDB <span class="muted-inline">(free, no signup)</span></h3>
+        <div class="rgrid" id="externalGrid"></div>
+      </div>
+
+      <div class="freestyle-box">
+        <p class="muted">Nothing quite fits? Let AI invent something from what you have.</p>
+        <button class="btn btn-accent" id="freestyleBtn">Get an AI recipe idea</button>
+        <div id="freestyleResult"></div>
+      </div>
+    </section>
+
+    <!-- EXPLORE TAB -->
+    <section class="panel" id="panel-explore">
+      <div class="panel-header">
+        <h2>Explore</h2>
+        <p class="muted">Browse by category or travel the globe through food — powered by TheMealDB (free, no signup).</p>
+      </div>
+
+      <div class="section-head"><h3>Browse by category</h3></div>
+      <div class="explore-grid" id="categoryGrid"><p class="muted">Loading categories…</p></div>
+
+      <div id="exploreResultsWrap" class="hidden">
+        <div class="section-head"><h3 id="exploreResultsTitle">Results</h3></div>
+        <div class="rgrid" id="exploreResultsGrid"></div>
+      </div>
+    </section>
+
+    <!-- FAVORITES TAB -->
+    <section class="panel" id="panel-favorites">
+      <div class="panel-header">
+        <h2>Saved recipes</h2>
+        <p class="muted">Recipes you've starred for later.</p>
+      </div>
+      <div class="rgrid" id="favoritesGrid"></div>
+    </section>
+
+    <!-- RECIPE DETAIL PAGE -->
+    <section class="panel" id="panel-recipe">
+      <div id="recipeContent"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- COOK MODE (voice-guided) -->
+<div class="modal-overlay hidden" id="cookModeOverlay">
+  <div class="modal cook-mode-modal">
+    <button class="modal-close" id="cookModeClose">&times;</button>
+    <div id="cookModeBody"></div>
+  </div>
+</div>
+
+<!-- HOW TO COOK? quick search -->
+<div class="modal-overlay hidden" id="howToCookOverlay">
+  <div class="modal how-to-cook-modal">
+    <button class="modal-close" id="howToCookClose">&times;</button>
+    <div class="htc-header">
+      <h2>How to Cook?</h2>
+    </div>
+    <p class="muted">Enter any recipe name and we'll find it or have AI write the full recipe.</p>
+    <div class="htc-search-row">
+      <input type="text" id="howToCookInput" placeholder="What would you like to cook?" autocomplete="off">
+      <button class="mic-btn" id="howToCookMicBtn" title="Search by voice">Voice</button>
+      <button class="btn btn-primary" id="howToCookSearchBtn">Search</button>
+    </div>
+    <div class="htc-try">
+      <span class="muted-inline">Try:</span>
+      <button class="htc-chip" data-try="Butter Chicken">Butter Chicken</button>
+      <button class="htc-chip" data-try="Chocolate Brownies">Chocolate Brownies</button>
+      <button class="htc-chip" data-try="Caesar Salad">Caesar Salad</button>
+    </div>
+    <div id="htcStatus"></div>
+    <div id="howToCookResults"></div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
