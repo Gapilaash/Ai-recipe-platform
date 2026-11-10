@@ -845,13 +845,37 @@ async function openCategory(name) {
   }
 }
 
+let exploreCategories = [];
+
+async function openCuisine(name) {
+  try {
+    const { recipes } = await api(`/api/explore/by-area/${encodeURIComponent(name)}`);
+    showExploreResults(`${name} cuisine`, recipes.map((r) => ({ ...r, area: name })));
+  } catch (err) {
+    showToast(err.message);
+  }
+}
+
 async function loadExplore() {
   if (exploreLoaded) return;
   exploreLoaded = true;
 
   const catGrid = document.getElementById("categoryGrid");
+  const chips = document.getElementById("cuisineChips");
+
+  // Cuisines (world areas)
+  api("/api/explore/areas")
+    .then(({ areas }) => {
+      chips.innerHTML = areas.length
+        ? areas.map((a) => `<button type="button" class="cuisine-chip" data-area="${esc(a)}">${esc(a)}</button>`).join("")
+        : `<p class="muted">Couldn't load cuisines.</p>`;
+    })
+    .catch(() => { chips.innerHTML = `<p class="muted">Couldn't load cuisines.</p>`; });
+
+  // Categories
   try {
     const { categories } = await api("/api/explore/categories");
+    exploreCategories = categories;
     catGrid.innerHTML = categories.length
       ? categoryCardsHTML(categories)
       : `<p class="muted">Couldn't reach TheMealDB right now — check your internet connection.</p>`;
@@ -861,6 +885,22 @@ async function loadExplore() {
     catGrid.innerHTML = `<p class="muted">Couldn't load categories.</p>`;
   }
 }
+
+document.getElementById("cuisineChips").addEventListener("click", (e) => {
+  const chip = e.target.closest("[data-area]");
+  if (!chip) return;
+  document.querySelectorAll(".cuisine-chip.active").forEach((c) => c.classList.remove("active"));
+  chip.classList.add("active");
+  openCuisine(chip.dataset.area);
+});
+
+document.getElementById("exploreSearch").addEventListener("input", (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  const filtered = exploreCategories.filter((c) => c.name.toLowerCase().includes(q));
+  document.getElementById("categoryGrid").innerHTML = filtered.length
+    ? categoryCardsHTML(filtered)
+    : `<p class="muted">No categories match "${esc(q)}".</p>`;
+});
 
 document.getElementById("categoryGrid").addEventListener("click", (e) => {
   const card = e.target.closest("[data-category]");
